@@ -493,7 +493,7 @@ function! fzf#vim#lines(...)
   return s:fzf('lines', {
   \ 'source':  lines,
   \ 'sink*':   s:function('s:line_handler'),
-  \ 'options': s:reverse_list(['+m', '--tiebreak=index', '--prompt', 'Lines> ', '--ansi', '--extended', '--nth='.nth.'..', '--tabstop=1', '--query', query])
+  \ 'options': s:reverse_list(['-e', '--layout=reverse', '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '+m', '--tiebreak=index', '--prompt', 'Lines> ', '--ansi', '--extended', '--nth='.nth.'..', '--tabstop=1', '--query', query])
   \}, args)
 endfunction
 
@@ -538,7 +538,7 @@ function! fzf#vim#buffer_lines(...)
   return s:fzf('blines', {
   \ 'source':  s:buffer_lines(query),
   \ 'sink*':   s:function('s:buffer_line_handler'),
-  \ 'options': s:reverse_list(['+m', '--tiebreak=index', '--multi', '--prompt', 'BLines> ', '--ansi', '--extended', '--nth=2..', '--tabstop=1'])
+  \ 'options': s:reverse_list(['-e', '--layout=reverse', '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '+m', '--tiebreak=index', '--multi', '--prompt', 'BLines> ', '--ansi', '--extended', '--nth=2..', '--tabstop=1'])
   \}, args)
 endfunction
 
@@ -786,7 +786,7 @@ function! fzf#vim#buffers(...)
   return s:fzf('buffers', {
   \ 'source':  map(sorted, 'fzf#vim#_format_buffer(v:val)'),
   \ 'sink*':   s:function('s:bufopen'),
-  \ 'options': ['+m', '-x', '--tiebreak=index', header_lines, '--ansi', '-d', '\t', '--with-nth', '3..', '-n', '2,1..2', '--prompt', 'Buf> ', '--query', query, '--preview-window', '+{2}-/2', '--tabstop', tabstop]
+  \ 'options': ['-e', '--layout=reverse', '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '+m', '-x', '--tiebreak=index', header_lines, '--ansi', '-d', '\t', '--with-nth', '3..', '-n', '2,1..2', '--prompt', 'Buf> ', '--query', query, '--preview-window', '+{2}-/2', '--tabstop', tabstop]
   \}, args)
 endfunction
 
@@ -808,7 +808,18 @@ function! s:ag_handler(lines, has_column)
   endif
 
   let cmd = s:action_for(a:lines[0], 'e')
-  let list = map(filter(a:lines[1:], 'len(v:val)'), 's:ag_to_qf(v:val, a:has_column)')
+  try
+      let list = map(filter(a:lines[1:], 'len(v:val)'), 's:ag_to_qf(v:val, a:has_column)')
+  catch
+    " add by king start
+    if g:fzf_ag_just_open == 0
+        call FzfAgl(g:fzf_ag_cword, a:lines[1])
+        return
+    endif
+    let list = [{'filename': a:lines[1], 'lnum': 1, 'text': ""}]
+    " add by king end
+  endtry
+
   if empty(list)
     return
   endif
@@ -1130,7 +1141,7 @@ function! fzf#vim#marks(...)
   return s:fzf('marks', {
   \ 'source':  extend(list[0:0], map(list[1:], 's:format_mark(v:val)')),
   \ 'sink*':   s:function('s:mark_sink'),
-  \ 'options': '+m -x --ansi --tiebreak=index --header-lines 1 --tiebreak=begin --prompt "Marks> "'}, a:000)
+  \ 'options': '-e --layout=reverse --bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up +m -x --ansi --tiebreak=index --header-lines 1 --tiebreak=begin --prompt "Marks> "'}, a:000)
 endfunction
 
 " ------------------------------------------------------------------

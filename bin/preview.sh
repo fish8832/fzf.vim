@@ -61,7 +61,7 @@ fi
 
 if [ -z "$FZF_PREVIEW_COMMAND" ] && [ "${BATNAME:+x}" ]; then
   ${BATNAME} --style="${BAT_STYLE:-numbers}" --color=always --pager=never \
-      --highlight-line=$CENTER -- "$FILE"
+      --theme='Monokai Extended' --highlight-line=$CENTER -- "$FILE"
   exit $?
 fi
 
