@@ -807,18 +807,46 @@ function! s:ag_handler(lines, has_column)
     return
   endif
 
+  " add by king start
+  let has_column = a:has_column
+  let colon1 = stridx(a:lines[1], ":")
+  " let colon3 = colon2 > 0 ? stridx(a:lines[1], ":", colon2 + 1) : -1
+  if colon1 < 0
+      "" file
+      " let list = [{'filename': a:lines[1], 'lnum': 1, 'text': ""}]
+      let a:lines[1] = a:lines[1].':1:null'
+  else
+      let colon2 = colon1 > 0 ? stridx(a:lines[1], ":", colon1 + 1) : -1
+      if colon2 > 0
+          let firstsec = a:lines[1][:(colon1 - 1)]
+          if !filereadable(firstsec)
+              " line:column:text
+              let VIM_PREVIEW_FILE=$HOME.'/.config/king/vim_preview_file.txt'
+              if filereadable(VIM_PREVIEW_FILE)
+                  let filenamelist = readfile(VIM_PREVIEW_FILE, '', 1)
+                  if len(filenamelist) > 0
+                      let a:lines[1] = filenamelist[0].':'.a:lines[1]
+                      let has_column = 1
+                  endif
+              endif
+          endif
+      endif
+  endif
+  " add by king end
+
   let cmd = s:action_for(a:lines[0], 'e')
-  try
-      let list = map(filter(a:lines[1:], 'len(v:val)'), 's:ag_to_qf(v:val, a:has_column)')
-  catch
+  let list = map(filter(a:lines[1:], 'len(v:val)'), 's:ag_to_qf(v:val, has_column)')
+  " try
+  " catch
     " add by king start
-    if g:fzf_ag_just_open == 0
-        call FzfAgl(g:fzf_ag_cword, a:lines[1])
-        return
-    endif
-    let list = [{'filename': a:lines[1], 'lnum': 1, 'text': ""}]
+    " if g:fzf_ag_just_open == 0
+        " call FzfAgl(g:fzf_ag_cword, a:lines[1])
+        " return
+    " endif
+    " let list = [{'filename': a:lines[1], 'lnum': 1, 'text': ""}]
+    " return
     " add by king end
-  endtry
+  " endtry
 
   if empty(list)
     return
@@ -828,7 +856,7 @@ function! s:ag_handler(lines, has_column)
   try
     call s:open(cmd, first.filename)
     execute first.lnum
-    if a:has_column
+    if has_column
       call cursor(0, first.col)
     endif
     normal! zvzz
@@ -875,6 +903,36 @@ function! fzf#vim#grep(grep_command, has_column, ...)
   \ 'options': ['--ansi', '--prompt', capname.'> ',
   \             '--multi', '--bind', 'alt-a:select-all,alt-d:deselect-all',
   \             '--delimiter', ':', '--preview-window', '+{2}-/2']
+  \}
+  function! opts.sink(lines)
+    return s:ag_handler(a:lines, self.column)
+  endfunction
+  let opts['sink*'] = remove(opts, 'sink')
+  try
+    let prev_default_command = $FZF_DEFAULT_COMMAND
+    let $FZF_DEFAULT_COMMAND = a:grep_command
+    return s:fzf(name, opts, a:000)
+  finally
+    let $FZF_DEFAULT_COMMAND = prev_default_command
+  endtry
+endfunction
+
+function! fzf#vim#grep_no_path(grep_command, has_column, ...)
+  let words = []
+  for word in split(a:grep_command)
+    if word !~# '^[a-z]'
+      break
+    endif
+    call add(words, word)
+  endfor
+  let words   = empty(words) ? ['grep'] : words
+  let name    = join(words, '-')
+  let capname = join(map(words, 'toupper(v:val[0]).v:val[1:]'), '')
+  let opts = {
+  \ 'column':  a:has_column,
+  \ 'options': ['--ansi', '--prompt', capname.'> ',
+  \             '--multi', '--bind', 'alt-a:select-all,alt-d:deselect-all',
+  \             '--delimiter', ':', '--preview-window', '+{1}-/2']
   \}
   function! opts.sink(lines)
     return s:ag_handler(a:lines, self.column)

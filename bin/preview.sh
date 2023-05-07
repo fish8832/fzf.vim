@@ -1,5 +1,23 @@
 #!/usr/bin/env bash
 
+
+if [ "$1" = "-w" ]; then
+    VIM_PREVIEW_FILE=$HOME/.config/king/vim_preview_file.txt
+    line="$3"
+    if [[ "$line" != *':'* ]]; then
+        # line is a file path
+        cword="$2"
+        echo "$line" > $VIM_PREVIEW_FILE
+        ag --color "$cword" "$line" 2>/dev/null
+        exit 0
+    else
+        # reload and reset params
+        FILE_PATH=`cat $VIM_PREVIEW_FILE`
+        set -- "$FILE_PATH:$line"
+    fi
+fi
+
+
 REVERSE="\x1b[7m"
 RESET="\x1b[m"
 
