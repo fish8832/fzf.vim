@@ -615,11 +615,18 @@ function! s:cmd_history_sink(lines)
   call s:history_sink(':', a:lines)
 endfunction
 
+function! fzf#vim#command_history_filter(...)
+  return s:fzf('history-command', {
+  \ 'source':  s:history_source(':'),
+  \ 'sink*':   s:function('s:cmd_history_sink'),
+  \ 'options': '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up +m --ansi --prompt="Hist:> " --header-lines=1 --expect=ctrl-e --tiebreak=index --query="Hifk "'}, a:000)
+endfunction
+
 function! fzf#vim#command_history(...)
   return s:fzf('history-command', {
   \ 'source':  s:history_source(':'),
   \ 'sink*':   s:function('s:cmd_history_sink'),
-  \ 'options': '+m --ansi --prompt="Hist:> " --header-lines=1 --expect=ctrl-e --tiebreak=index'}, a:000)
+  \ 'options': '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up +m --ansi --prompt="Hist:> " --header-lines=1 --expect=ctrl-e --tiebreak=index'}, a:000)
 endfunction
 
 function! s:search_history_sink(lines)
@@ -630,13 +637,13 @@ function! fzf#vim#search_history(...)
   return s:fzf('history-search', {
   \ 'source':  s:history_source('/'),
   \ 'sink*':   s:function('s:search_history_sink'),
-  \ 'options': '+m --ansi --prompt="Hist/> " --header-lines=1 --expect=ctrl-e --tiebreak=index'}, a:000)
+  \ 'options': '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up +m --ansi --prompt="Hist/> " --header-lines=1 --expect=ctrl-e --tiebreak=index'}, a:000)
 endfunction
 
 function! fzf#vim#history(...)
   return s:fzf('history-files', {
   \ 'source':  fzf#vim#_recent_files(),
-  \ 'options': ['-m', '--header-lines', !empty(expand('%')), '--prompt', 'Hist> ']
+  \ 'options': ['--layout=reverse','--keep-right','--bind','ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '-m', '--header-lines', !empty(expand('%')), '--prompt', 'Hist> ']
   \}, a:000)
 endfunction
 
@@ -786,7 +793,7 @@ function! fzf#vim#buffers(...)
   return s:fzf('buffers', {
   \ 'source':  map(sorted, 'fzf#vim#_format_buffer(v:val)'),
   \ 'sink*':   s:function('s:bufopen'),
-  \ 'options': ['-e', '--layout=reverse', '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '+m', '-x', '--tiebreak=index', header_lines, '--ansi', '-d', '\t', '--with-nth', '3..', '-n', '2,1..2', '--prompt', 'Buf> ', '--query', query, '--preview-window', '+{2}-/2', '--tabstop', tabstop]
+  \ 'options': ['-e', '--layout=reverse', '--keep-right', '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '+m', '-x', '--tiebreak=index', header_lines, '--ansi', '-d', '\t', '--with-nth', '3..', '-n', '2,1..2', '--prompt', 'Buf> ', '--query', query, '--preview-window', '+{2}-/2', '--tabstop', tabstop]
   \}, args)
 endfunction
 
