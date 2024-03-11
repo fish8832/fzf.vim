@@ -493,7 +493,7 @@ function! fzf#vim#lines(...)
   return s:fzf('lines', {
   \ 'source':  lines,
   \ 'sink*':   s:function('s:line_handler'),
-  \ 'options': s:reverse_list(['-e', '--layout=reverse', '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '+m', '--tiebreak=index', '--prompt', 'Lines> ', '--ansi', '--extended', '--nth='.nth.'..', '--tabstop=1', '--query', query])
+  \ 'options': s:reverse_list(['-e', '--layout=reverse', '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '+m', '--tiebreak=index', '--prompt', 'Lines> ', '--ansi', '--extended', '--nth='.nth.'..', '--tabstop=1', '--no-sort', '--history=/home/king/.config/king/vim_fzf_history', '--query', query])
   \}, args)
 endfunction
 
@@ -538,7 +538,7 @@ function! fzf#vim#buffer_lines(...)
   return s:fzf('blines', {
   \ 'source':  s:buffer_lines(query),
   \ 'sink*':   s:function('s:buffer_line_handler'),
-  \ 'options': s:reverse_list(['-e', '--layout=reverse', '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '+m', '--tiebreak=index', '--multi', '--prompt', 'BLines> ', '--ansi', '--extended', '--nth=2..', '--tabstop=1'])
+  \ 'options': s:reverse_list(['-e', '--layout=reverse', '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '+m', '--tiebreak=index', '--multi', '--prompt', 'BLines> ', '--ansi', '--extended', '--nth=2..', '--tabstop=1', '--no-sort', '--history=/home/king/.config/king/vim_fzf_history'])
   \}, args)
 endfunction
 
@@ -626,7 +626,7 @@ function! fzf#vim#command_history(...)
   return s:fzf('history-command', {
   \ 'source':  s:history_source(':'),
   \ 'sink*':   s:function('s:cmd_history_sink'),
-  \ 'options': '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up +m --ansi --prompt="Hist:> " --header-lines=1 --expect=ctrl-e --tiebreak=index'}, a:000)
+  \ 'options': '+m --ansi --prompt="Hist:> " --header-lines=1 --expect=ctrl-e --tiebreak=index --bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up'}, a:000)
 endfunction
 
 function! s:search_history_sink(lines)
@@ -637,13 +637,13 @@ function! fzf#vim#search_history(...)
   return s:fzf('history-search', {
   \ 'source':  s:history_source('/'),
   \ 'sink*':   s:function('s:search_history_sink'),
-  \ 'options': '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up +m --ansi --prompt="Hist/> " --header-lines=1 --expect=ctrl-e --tiebreak=index'}, a:000)
+  \ 'options': '+m --ansi --prompt="Hist/> " --header-lines=1 --expect=ctrl-e --tiebreak=index --bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up'}, a:000)
 endfunction
 
 function! fzf#vim#history(...)
   return s:fzf('history-files', {
   \ 'source':  fzf#vim#_recent_files(),
-  \ 'options': ['--layout=reverse','--keep-right','--bind','ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '-m', '--header-lines', !empty(expand('%')), '--prompt', 'Hist> ']
+  \ 'options': ['-m', '--header-lines', !empty(expand('%')), '--prompt', 'Hist> ', '--layout=reverse', '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '--preview-window', 'down:50%', '--keep-right']
   \}, a:000)
 endfunction
 
@@ -790,10 +790,15 @@ function! fzf#vim#buffers(...)
   let sorted = fzf#vim#_buflisted_sorted()
   let header_lines = '--header-lines=' . (bufnr('') == get(sorted, 0, 0) ? 1 : 0)
   let tabstop = len(max(sorted)) >= 4 ? 9 : 8
+  " return s:fzf('buffers', {
+  " \ 'source':  map(sorted, 'fzf#vim#_format_buffer(v:val)'),
+  " \ 'sink*':   s:function('s:bufopen'),
+  " \ 'options': ['-e', '--layout=reverse', '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '+m', '-x', '--tiebreak=index', header_lines, '--ansi', '-d', '\t', '--with-nth', '3..', '-n', '2,1..2', '--prompt', 'Buf> ', '--query', query, '--preview-window', '+{2}-/2', '--tabstop', tabstop, '--cycle', '--keep-right']
+  " \}, args)
   return s:fzf('buffers', {
   \ 'source':  map(sorted, 'fzf#vim#_format_buffer(v:val)'),
   \ 'sink*':   s:function('s:bufopen'),
-  \ 'options': ['-e', '--layout=reverse', '--keep-right', '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '+m', '-x', '--tiebreak=index', header_lines, '--ansi', '-d', '\t', '--with-nth', '3..', '-n', '2,1..2', '--prompt', 'Buf> ', '--query', query, '--preview-window', '+{2}-/2', '--tabstop', tabstop]
+  \ 'options': ['-e', '--layout=reverse', '--bind=ctrl-g:jump,ctrl-f:page-down,ctrl-b:page-up', '+m', '-x', '--tiebreak=index', header_lines, '--ansi', '-d', '\t', '--with-nth', '3..', '-n', '2,1..2', '--prompt', 'Buf> ', '--query', query, '--preview-window', 'down:50%', '--tabstop', tabstop, '--cycle', '--keep-right']
   \}, args)
 endfunction
 
